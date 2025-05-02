@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -13,24 +13,83 @@ import {
 } from '@mui/material';
 import { Security as SecurityIcon } from '@mui/icons-material';
 
+// Static users database
+const USERS = [
+  {
+    email: 'admin@admin.com',
+    password: 'admin123',
+    role: 'admin',
+    name: 'Admin User',
+  },
+  {
+    email: 'user@example.com',
+    password: 'user123',
+    role: 'user',
+    name: 'Regular User',
+  },
+];
+
 function Login() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    console.log('Attempting login with:', credentials);
+
     try {
-      if (credentials.email === 'admin@admin.com' && credentials.password === 'admin') {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const user = USERS.find(
+        u => u.email.toLowerCase() === credentials.email.toLowerCase() && 
+             u.password === credentials.password
+      );
+
+      console.log('Found user:', user);
+
+      if (user) {
+        // Store user data in localStorage
         localStorage.setItem('isAuthenticated', 'true');
-        navigate('/dashboard');
+        localStorage.setItem('userRole', user.role);
+        localStorage.setItem('userName', user.name);
+        localStorage.setItem('userEmail', user.email);
+        
+        console.log('Login successful, redirecting to dashboard...');
+        // Force a page reload to ensure all components re-render with new auth state
+        window.location.href = '/dashboard';
       } else {
+        console.log('Login failed: Invalid credentials');
         setError('Email ou mot de passe incorrect');
       }
     } catch (error) {
+      console.error('Login error:', error);
       setError('Une erreur est survenue lors de la connexion');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({
+      ...prev,
+      [name]: value.trim()
+    }));
   };
 
   return (
@@ -38,7 +97,6 @@ function Login() {
       sx={{
         minHeight: '100vh',
         display: 'flex',
-        background: 'linear-gradient(135deg, #1a237e 0%, #0d47a1 100%)',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -130,7 +188,7 @@ function Login() {
                 </Alert>
               )}
 
-              <Box component="form" onSubmit={handleSubmit}>
+              <Box component="form" onSubmit={handleSubmit} noValidate>
                 <TextField
                   margin="normal"
                   required
@@ -141,7 +199,8 @@ function Login() {
                   autoComplete="email"
                   autoFocus
                   value={credentials.email}
-                  onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       '&:hover fieldset': {
@@ -160,7 +219,8 @@ function Login() {
                   id="password"
                   autoComplete="current-password"
                   value={credentials.password}
-                  onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       '&:hover fieldset': {
@@ -173,6 +233,7 @@ function Login() {
                   type="submit"
                   fullWidth
                   variant="contained"
+                  disabled={isLoading}
                   sx={{
                     mt: 3,
                     mb: 2,
@@ -184,8 +245,20 @@ function Login() {
                     },
                   }}
                 >
-                  Se connecter
+                  {isLoading ? 'Connexion en cours...' : 'Se connecter'}
                 </Button>
+              </Box>
+
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Comptes de test:
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Admin: admin@admin.com / admin123
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  User: user@example.com / user123
+                </Typography>
               </Box>
             </Paper>
           </Grid>

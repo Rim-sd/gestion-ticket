@@ -121,7 +121,7 @@ function Dashboard() {
   };
 
   return (
-    <Box sx={{ animation: 'fadeIn 0.5s ease-in-out' }}>
+    <Box className="dashboard-page" sx={{ animation: 'fadeIn 0.5s ease-in-out' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ 
           background: 'linear-gradient(45deg, #2196f3, #64b5f6)',

@@ -38,7 +38,7 @@ import {
 
 const drawerWidth = 240;
 
-function Layout() {
+function Layout({ onLogout }) {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,9 +57,14 @@ function Layout() {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    navigate('/login');
+  const handleProfileClick = () => {
+    handleProfileMenuClose();
+    navigate('/profile');
+  };
+
+  const handleLogoutClick = () => {
+    handleProfileMenuClose();
+    onLogout();
   };
 
   const menuItems = [
@@ -141,6 +146,39 @@ function Layout() {
               </Avatar>
             </IconButton>
           </Tooltip>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleProfileMenuClose}
+            TransitionComponent={Fade}
+            PaperProps={{
+              sx: {
+                mt: 1.5,
+                background: 'rgba(10, 25, 41, 0.95)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                '& .MuiMenuItem-root': {
+                  color: 'white',
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.1)',
+                  },
+                },
+              },
+            }}
+          >
+            <MenuItem onClick={handleProfileClick}>
+              <ListItemIcon>
+                <PersonIcon fontSize="small" sx={{ color: 'white' }} />
+              </ListItemIcon>
+              <Typography variant="body2">Profil</Typography>
+            </MenuItem>
+            <MenuItem onClick={handleLogoutClick}>
+              <ListItemIcon>
+                <ExitToAppIcon fontSize="small" sx={{ color: 'white' }} />
+              </ListItemIcon>
+              <Typography variant="body2">Déconnexion</Typography>
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
@@ -259,51 +297,6 @@ function Layout() {
           ))}
         </List>
       </Drawer>
-
-      <Menu
-        anchorEl={anchorEl}
-        id="account-menu"
-        open={Boolean(anchorEl)}
-        onClose={handleProfileMenuClose}
-        onClick={handleProfileMenuClose}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        TransitionComponent={Fade}
-        PaperProps={{
-          sx: {
-            background: 'linear-gradient(135deg, rgba(10, 25, 41, 0.95) 0%, rgba(26, 35, 126, 0.95) 100%)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-            color: 'white',
-            '& .MuiMenuItem-root': {
-              '&:hover': {
-                background: 'rgba(255, 255, 255, 0.1)',
-              },
-            },
-          },
-        }}
-      >
-        <MenuItem onClick={() => navigate('/profile')}>
-          <ListItemIcon>
-            <PersonIcon fontSize="small" sx={{ color: 'white' }} />
-          </ListItemIcon>
-          Mon profil
-        </MenuItem>
-        <MenuItem onClick={() => navigate('/settings')}>
-          <ListItemIcon>
-            <SettingsIcon fontSize="small" sx={{ color: 'white' }} />
-          </ListItemIcon>
-          Paramètres
-        </MenuItem>
-        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
-        <MenuItem onClick={handleLogout}>
-          <ListItemIcon>
-            <ExitToAppIcon fontSize="small" sx={{ color: 'white' }} />
-          </ListItemIcon>
-          Se déconnecter
-        </MenuItem>
-      </Menu>
 
       <Box
         component="main"
