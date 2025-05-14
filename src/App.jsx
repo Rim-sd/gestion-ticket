@@ -3,7 +3,10 @@ import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import theme from './theme';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import UserManagement from './pages/UserManagement';
 import IncidentForm from './pages/IncidentForm';
 import IncidentList from './pages/IncidentList';
 import IncidentDetails from './pages/IncidentDetails';
@@ -88,6 +91,7 @@ const AnimatedBackground = () => {
 
 function App() {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const isAdmin = localStorage.getItem('userRole') === 'admin';
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
@@ -97,6 +101,14 @@ function App() {
     window.location.href = '/login';
   };
 
+  // Admin route protection component
+  const AdminRoute = ({ children }) => {
+    if (!isAuthenticated || !isAdmin) {
+      return <Navigate to="/admin/login" replace />;
+    }
+    return children;
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
@@ -104,17 +116,19 @@ function App() {
         <Router>
           <AnimatedBackground />
           <Routes>
-            <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
+            <Route path="/" element={<Navigate to={isAuthenticated ? (isAdmin ? "/admin/dashboard" : "/dashboard") : "/login"} />} />
+            
+            {/* User Routes */}
             <Route 
               path="/login" 
               element={
                 isAuthenticated ? 
-                <Navigate to="/dashboard" replace /> : 
+                <Navigate to={isAdmin ? "/admin/dashboard" : "/dashboard"} replace /> : 
                 <Login />
               } 
             />
             <Route
-              element={isAuthenticated ? <Layout onLogout={handleLogout} /> : <Navigate to="/login" replace />}
+              element={isAuthenticated ? <Layout onLogout={handleLogout} isAdmin={false} /> : <Navigate to="/login" replace />}
             >
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
@@ -129,7 +143,26 @@ function App() {
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/historique" element={<Historique />} />
             </Route>
-            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={
+              isAuthenticated && isAdmin ? 
+              <Navigate to="/admin/dashboard" replace /> : 
+              <AdminLogin />
+            } />
+            <Route
+              element={
+                <AdminRoute>
+                  <Layout onLogout={handleLogout} isAdmin={true} />
+                </AdminRoute>
+              }
+            >
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<UserManagement />} />
+              <Route path="/admin/profile" element={<Profile />} />
+            </Route>
+
+            <Route path="*" element={<Navigate to={isAuthenticated ? (isAdmin ? "/admin/dashboard" : "/dashboard") : "/login"} replace />} />
           </Routes>
         </Router>
       </ThemeProvider>

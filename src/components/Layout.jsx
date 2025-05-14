@@ -34,11 +34,13 @@ import {
   Assignment as AssignmentIcon,
   Book as BookIcon,
   Lock as LockIcon,
+  Group as GroupIcon,
+  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
-function Layout({ onLogout }) {
+function Layout({ onLogout, isAdmin = false }) {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,7 +61,7 @@ function Layout({ onLogout }) {
 
   const handleProfileClick = () => {
     handleProfileMenuClose();
-    navigate('/profile');
+    navigate(isAdmin ? '/admin/profile' : '/profile');
   };
 
   const handleLogoutClick = () => {
@@ -67,7 +69,7 @@ function Layout({ onLogout }) {
     onLogout();
   };
 
-  const menuItems = [
+  const userMenuItems = [
     { text: 'Tableau de bord', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Incidents', icon: <BugReportIcon />, path: '/incidents' },
     { text: 'Plans de continuité', icon: <SecurityIcon />, path: '/plans-continuite' },
@@ -75,6 +77,13 @@ function Layout({ onLogout }) {
     { text: 'Centre de documentation', icon: <BookIcon />, path: '/documentation' },
     { text: 'Historique', icon: <HistoryIcon />, path: '/historique' },
   ];
+
+  const adminMenuItems = [
+    { text: 'Tableau de bord', icon: <AdminIcon />, path: '/admin/dashboard' },
+    { text: 'Gestion des utilisateurs', icon: <GroupIcon />, path: '/admin/users' },
+  ];
+
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -87,7 +96,9 @@ function Layout({ onLogout }) {
             duration: theme.transitions.duration.leavingScreen,
           }),
           backdropFilter: 'blur(10px)',
-          background: 'linear-gradient(90deg, rgba(10, 25, 41, 0.9) 0%, rgba(26, 35, 126, 0.9) 100%)',
+          background: isAdmin 
+            ? 'linear-gradient(90deg, rgba(26, 35, 126, 0.9) 0%, rgba(10, 25, 41, 0.9) 100%)'
+            : 'linear-gradient(90deg, rgba(10, 25, 41, 0.9) 0%, rgba(26, 35, 126, 0.9) 100%)',
           boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           ...(open && {
@@ -114,7 +125,7 @@ function Layout({ onLogout }) {
             <MenuIcon />
           </IconButton>
           <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-            <LockIcon sx={{ mr: 2, color: theme.palette.primary.light }} />
+            {isAdmin ? <AdminIcon sx={{ mr: 2, color: theme.palette.primary.light }} /> : <LockIcon sx={{ mr: 2, color: theme.palette.primary.light }} />}
             <Typography
               variant="h6"
               noWrap
@@ -126,7 +137,7 @@ function Layout({ onLogout }) {
                 fontWeight: 600,
               }}
             >
-              Gestion des Incidents
+              {isAdmin ? 'Administration' : 'Gestion des Incidents'}
             </Typography>
           </Box>
           <Tooltip title="Paramètres du profil">
@@ -135,14 +146,18 @@ function Layout({ onLogout }) {
               size="small"
               sx={{
                 ml: 2,
-                background: 'linear-gradient(45deg, #1976d2 30%, #2196f3 90%)',
+                background: isAdmin
+                  ? 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)'
+                  : 'linear-gradient(45deg, #1976d2 30%, #2196f3 90%)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
+                  background: isAdmin
+                    ? 'linear-gradient(45deg, #0d47a1 30%, #1565c0 90%)'
+                    : 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
                 },
               }}
             >
               <Avatar sx={{ width: 32, height: 32 }}>
-                <PersonIcon />
+                {isAdmin ? <AdminIcon /> : <PersonIcon />}
               </Avatar>
             </IconButton>
           </Tooltip>
@@ -168,7 +183,7 @@ function Layout({ onLogout }) {
           >
             <MenuItem onClick={handleProfileClick}>
               <ListItemIcon>
-                <PersonIcon fontSize="small" sx={{ color: 'white' }} />
+                {isAdmin ? <AdminIcon fontSize="small" sx={{ color: 'white' }} /> : <PersonIcon fontSize="small" sx={{ color: 'white' }} />}
               </ListItemIcon>
               <Typography variant="body2">Profil</Typography>
             </MenuItem>
@@ -209,30 +224,9 @@ function Layout({ onLogout }) {
             overflowX: 'hidden',
           }),
           '& .MuiDrawer-paper': {
-            background: 'linear-gradient(135deg, rgba(10, 25, 41, 0.95) 0%, rgba(26, 35, 126, 0.95) 100%)',
+            background: 'rgba(10, 25, 41, 0.95)',
             backdropFilter: 'blur(10px)',
             borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-            width: drawerWidth,
-            transition: theme.transitions.create('width', {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-            ...(open && {
-              width: drawerWidth,
-              transition: theme.transitions.create('width', {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
-              }),
-              overflowX: 'hidden',
-            }),
-            ...(!open && {
-              transition: theme.transitions.create('width', {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.leavingScreen,
-              }),
-              width: theme.spacing(7),
-              overflowX: 'hidden',
-            }),
           },
         }}
       >
@@ -244,8 +238,8 @@ function Layout({ onLogout }) {
             px: [1],
           }}
         >
-          <IconButton onClick={handleDrawerToggle} sx={{ color: 'white' }}>
-            <ChevronLeftIcon />
+          <IconButton onClick={handleDrawerToggle}>
+            <ChevronLeftIcon sx={{ color: 'white' }} />
           </IconButton>
         </Toolbar>
         <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
@@ -257,17 +251,11 @@ function Layout({ onLogout }) {
                   minHeight: 48,
                   justifyContent: open ? 'initial' : 'center',
                   px: 2.5,
-                  borderRadius: '0 24px 24px 0',
-                  margin: '4px 8px 4px 0',
-                  transition: 'all 0.2s ease-in-out',
                   '&:hover': {
-                    background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   },
-                  ...(location.pathname.startsWith(item.path) && {
-                    background: 'linear-gradient(90deg, rgba(33, 150, 243, 0.2) 0%, rgba(33, 150, 243, 0) 100%)',
-                    '&:hover': {
-                      background: 'linear-gradient(90deg, rgba(33, 150, 243, 0.3) 0%, rgba(33, 150, 243, 0) 100%)',
-                    },
+                  ...(location.pathname === item.path && {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   }),
                 }}
                 onClick={() => navigate(item.path)}
@@ -277,7 +265,7 @@ function Layout({ onLogout }) {
                     minWidth: 0,
                     mr: open ? 3 : 'auto',
                     justifyContent: 'center',
-                    color: location.pathname.startsWith(item.path) ? theme.palette.primary.light : 'white',
+                    color: 'white',
                   }}
                 >
                   {item.icon}
@@ -287,9 +275,6 @@ function Layout({ onLogout }) {
                   sx={{
                     opacity: open ? 1 : 0,
                     color: 'white',
-                    '& .MuiTypography-root': {
-                      fontWeight: location.pathname.startsWith(item.path) ? 600 : 400,
-                    },
                   }}
                 />
               </ListItemButton>
@@ -304,38 +289,10 @@ function Layout({ onLogout }) {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          mt: '64px',
-          minHeight: 'calc(100vh - 64px)',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'radial-gradient(circle at top right, rgba(33, 150, 243, 0.1) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          },
+          mt: 8,
         }}
       >
-        <Paper
-          sx={{
-            p: 3,
-            background: 'rgba(10, 25, 41, 0.5)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: 2,
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-            position: 'relative',
-            overflow: 'hidden',
-            minHeight: 'calc(100vh - 96px)',
-            ml: { sm: 0 },
-          }}
-        >
-          <Outlet />
-        </Paper>
+        <Outlet />
       </Box>
     </Box>
   );
